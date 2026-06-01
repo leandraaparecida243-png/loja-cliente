@@ -1,2 +1,0 @@
-http://localhost:8080/img/camisa1.jpg
-http://localhost:8080/img/camisa2.jpg
