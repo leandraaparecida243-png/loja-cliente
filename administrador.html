@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDSURF | PAINEL ADMIN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --accent2: #ff6b35;
+            --lime: #c8ff00;
+            --dark: #070a0d;
+            --card: #0d1117;
+            --card2: #111318;
+            --border: rgba(0,212,255,0.13);
+            --border-lime: rgba(200,255,0,0.2);
+            --text-muted: #555b68;
+            --text-mid: #8b929e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--dark);
+            color: #e8eaf0;
+            font-family: 'Barlow', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── BACKGROUND TEXTURE ── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 5% 95%, rgba(200,255,0,.055) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 95% 5%, rgba(0,212,255,.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: repeating-linear-gradient(
+                -45deg,
+                transparent, transparent 30px,
+                rgba(255,255,255,.012) 30px,
+                rgba(255,255,255,.012) 31px
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ══════════════════════════════
+           MODAL DE SENHA
+        ══════════════════════════════ */
+        #modal-senha {
+            position: fixed; inset: 0;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+                url('https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=1200');
+            background-size: cover;
+            background-position: center;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9998;
+            backdrop-filter: blur(2px);
+        }
+        #modal-senha.hidden { display: none; }
+
+        .modal-senha-wrap {
+            width: 92%;
+            max-width: 380px;
+            animation: fadeUp .45s cubic-bezier(.22,.68,0,1.2) both;
+        }
+
+        /* brand topo */
+        .ms-brand { text-align: center; margin-bottom: 2rem; }
+        .ms-brand-tag {
+            display: inline-flex; align-items: center; gap: .45rem;
+            background: rgba(200,255,0,.08);
+            border: 1px solid rgba(200,255,0,.2);
+            border-radius: 4px; padding: .28rem .7rem;
+            font-size: .65rem; font-weight: 700; letter-spacing: .15em;
+            color: var(--lime); text-transform: uppercase; margin-bottom: .9rem;
+        }
+        .ms-brand-tag .dot {
+            width: 6px; height: 6px; background: var(--lime); border-radius: 50%;
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+        .ms-brand-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.2rem; letter-spacing: .06em; line-height: 1; color: #fff;
+        }
+        .ms-brand-name em { color: var(--accent); font-style: normal; }
+        .ms-brand-sub {
+            margin-top: .4rem; font-size: .7rem; font-weight: 600;
+            letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted);
+        }
+
+        /* card */
+        .ms-card {
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 16px; padding: 2rem 1.6rem;
+            box-shadow: 0 0 60px rgba(0,212,255,.08), 0 20px 60px rgba(0,0,0,.3);
+            backdrop-filter: blur(8px);
+        }
+
+        .ms-divider { display: flex; align-items: center; gap: .7rem; margin-bottom: 1.4rem; }
+        .ms-divider-line { flex: 1; height: 1px; background: rgba(255,255,255,.06); }
+        .ms-divider-label {
+            font-size: .62rem; font-weight: 700; letter-spacing: .14em;
+            text-transform: uppercase; color: var(--text-muted);
+        }
+
+        .ms-label {
+            display: block; font-size: .63rem; font-weight: 700;
+            letter-spacing: .12em; text-transform: uppercase;
+            color: var(--text-muted); margin-bottom: .45rem;
+        }
+
+        .ms-input-wrap { position: relative; margin-bottom: .5rem; }
+
+        .modal-input {
+            width: 100%; background: #0a0d11;
+            border: 1.5px solid rgba(255,255,255,.07);
+            color: #fff; padding: .85rem 2.8rem .85rem 1rem;
+            border-radius: 8px; font-size: .92rem; font-family: 'Barlow', sans-serif;
+            outline: none; transition: border-color .2s, box-shadow .2s;
+        }
+        .modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,.1); }
+        .modal-input.erro { border-color: #ff4444; animation: shake .4s ease; }
+        
+        .ms-btn-enter {
+            width: 100%; margin-top: .3rem; padding: .9rem;
+            background: var(--accent); color: #000;
+            border: none; border-radius: 8px;
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: .1em;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .6rem;
+            transition: background .2s, box-shadow .2s, transform .1s;
+        }
+        .ms-btn-enter:hover { background: #1ae0ff; box-shadow: 0 4px 24px rgba(0,212,255,.3); }
+
+        /* ══════════════════════════════
+           HEADER DO PAINEL
+        ══════════════════════════════ */
+        #admin-header {
+            position: relative; z-index: 1; background: #0a0d11;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+        }
+        #admin-header h1 {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .1em; color: #fff;
+        }
+        #admin-header h1 span { color: var(--accent2); }
+
+        /* ══════════════════════════════
+           PAINEL CONTEÚDO
+        ══════════════════════════════ */
+        #painel-conteudo { display: none; position: relative; z-index: 1; }
+        #admin-panel { padding: 16px; }
+
+        .admin-title {
+            font-size: .62rem; font-weight: 700; letter-spacing: .18em;
+            text-transform: uppercase; color: var(--accent2); margin-bottom: 12px;
+        }
+
+        .admin-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .admin-form input, .admin-form select {
+            background: #0a0d11; border: 1.5px solid rgba(255,255,255,.07);
+            color: #e8eaf0; padding: .72rem .9rem; border-radius: 8px;
+            font-size: .82rem; font-family: 'Barlow', sans-serif; outline: none;
+        }
+        .admin-form .full { grid-column: 1 / -1; }
+
+        /* tamanhos */
+        .tamanhos-grid { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 1 / -1; margin-top: 2px; }
+        .tamanho-check { display: none; }
+        .tamanho-label {
+            padding: 5px 10px; border: 1.5px solid rgba(255,255,255,.08);
+            border-radius: 5px; color: var(--text-muted); font-size: .72rem; font-weight: 700;
+            cursor: pointer; transition: all .2s;
+        }
+        .tamanho-check:checked + .tamanho-label { background: var(--lime); color: #000; border-color: var(--lime); }
+
+        /* fotos */
+        .foto-tabs { display: flex; gap: 6px; margin-bottom: 8px; grid-column: 1 / -1; }
+        .foto-tab {
+            padding: 5px 14px; border: 1.5px solid rgba(255,255,255,.07);
+            background: none; color: var(--text-muted); font-size: .7rem; font-weight: 700;
+            border-radius: 5px; cursor: pointer; transition: all .2s;
+        }
+        .foto-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .foto-input-area { background: #0a0d11; border: 1px dashed rgba(255,255,255,.1); padding: 12px; border-radius: 8px; text-align: center; }
+        
+        .preview-img { max-width: 100px; border-radius: 8px; display: none; margin: 8px auto 0; }
+
+        .btn-add-produto {
+            grid-column: 1 / -1; background: var(--lime); color: #000;
+            border: none; padding: .85rem; border-radius: 8px;
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: .08em;
+            cursor: pointer; margin-top: 10px;
+        }
+        .btn-ir-loja {
+            display: block; text-align: center; background: #2a2e38; color: #fff;
+            text-decoration: none; padding: .85rem; border-radius: 8px;
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; margin-top: 10px;
+        }
+
+        .produtos-lista { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .produto-admin-item {
+            background: #0a0d11; border: 1px solid rgba(255,255,255,.05);
+            padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px;
+        }
+        .produto-admin-item img { width: 40px; height: 40px; object-fit: cover; border-radius: 5px; }
+        .produto-admin-info { flex: 1; }
+        .produto-admin-info strong { display: block; color: #e8eaf0; font-weight: 600; font-size: .9rem; }
+        .produto-admin-info span { color: var(--accent); font-size: .75rem; }
+        .btn-del { background: #ff4444; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: .7rem; font-weight: bold; }
+
+        .toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--lime); color: #000; padding: 9px 20px; border-radius: 6px;
+            font-weight: 700; font-size: .78rem; z-index: 9999; transition: transform .3s;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<!-- MODAL SENHA -->
+<div id="modal-senha">
+    <div class="modal-senha-wrap">
+        <div class="ms-brand">
+            <div class="ms-brand-name">MD<em>SURF</em></div>
+            <div class="ms-brand-sub">Painel do Administrador</div>
+        </div>
+        <div class="ms-card">
+            <label class="ms-label">Senha de Acesso</label>
+            <div class="ms-input-wrap">
+                <input type="password" class="modal-input" id="input-senha-admin" placeholder="Digite a senha" onkeydown="if(event.key==='Enter') verificarSenhaAdmin()" />
+            </div>
+            <button class="ms-btn-enter" onclick="verificarSenhaAdmin()">ENTRAR</button>
+        </div>
+    </div>
+</div>
+
+<!-- PAINEL CONTEÚDO -->
+<div id="painel-conteudo">
+    <div id="admin-header">
+        <h1>MD<span>SURF</span> | ADMIN</h1>
+    </div>
+    <div id="admin-panel">
+        <div class="admin-title">📦 ADICIONAR NOVO PRODUTO</div>
+        <div class="admin-form">
+            <input type="text" id="a-nome" placeholder="Nome do produto" />
+            <input type="number" id="a-preco" placeholder="Preço (ex: 99.90)" step="0.01" />
+            <select id="a-categoria">
+                <option value="">Categoria</option>
+                <option value="camisetas">👕 Camisetas</option>
+                <option value="hoodies">🧥 Blusas / Hoodies</option>
+                <option value="jaquetas">🥼 Jaquetas</option>
+                <option value="calças">👖 Calças</option>
+                <option value="shorts">🩳 Shorts</option>
+                <option value="cuecas">🩲 Cuecas</option>
+                <option value="meias">🧦 Meias</option>
+                <option value="tênis">👟 Tênis</option>
+                <option value="bonés">🧢 Bonés</option>
+                <option value="relógios">⌚ Relógios</option>
+                <option value="óculos">🕶️ Óculos</option>
+                <option value="perfumes">🌊 Perfumes</option>
+            </select>
+            
+            <div class="full">
+                <div style="font-size:.62rem;color:var(--text-muted);font-weight:700;margin-bottom:8px;">Tamanhos Disponíveis</div>
+                <div class="tamanhos-grid">
+                    <input type="checkbox" class="tamanho-check" id="tam-p" value="P"><label class="tamanho-label" for="tam-p">P</label>
+                    <input type="checkbox" class="tamanho-check" id="tam-m" value="M"><label class="tamanho-label" for="tam-m">M</label>
+                    <input type="checkbox" class="tamanho-check" id="tam-g" value="G"><label class="tamanho-label" for="tam-g">G</label>
+                    <input type="checkbox" class="tamanho-check" id="tam-gg" value="GG"><label class="tamanho-label" for="tam-gg">GG</label>
+                    <input type="checkbox" class="tamanho-check" id="tam-un" value="ÚNICO"><label class="tamanho-label" for="tam-un">ÚNICO</label>
+                </div>
+            </div>
+
+            <div class="foto-tabs full">
+                <button class="foto-tab active" onclick="trocarFotoTab('url')">🔗 URL DA IMAGEM</button>
+                <button class="foto-tab" onclick="trocarFotoTab('upload')">📁 UPLOAD (BASE64)</button>
+            </div>
+            
+            <div id="tab-url" class="foto-input-area full">
+                <input type="text" id="a-foto-url" placeholder="Cole o link da imagem aqui (https://...)" oninput="previewUrl()" style="width:100%; margin-bottom:10px;" />
+                <img id="preview-url" class="preview-img" />
+            </div>
+            
+            <div id="tab-upload" class="foto-input-area full" style="display:none">
+                <input type="file" id="a-foto-file" accept="image/*" onchange="handleFileSelect(event)" style="margin-bottom:10px; color:#fff;" />
+                <img id="preview-upload" class="preview-img" />
+            </div>
+
+            <button class="btn-add-produto" onclick="adicionarProduto()">+ SALVAR PRODUTO</button>
+        </div>
+        
+        <a href="index.html" class="btn-ir-loja">🛍 IR PARA A LOJA</a>
+        
+        <div id="lista-admin" class="produtos-lista"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // CONFIGURAÇÕES DO BANCO DE DADOS (JSONBIN)
+    const BIN_ID = '6a187891ddf5aa59f770c17c';
+    const BIN_FOTOS_ID = '6a1b939021f9ee59d29fa7e3';
+    const API_KEY = '$2a$10$bD7LDT0NM41fX03433GmPOb4pfAWxTsOJm7Od2RVXg/mIdEKzRfmK';
+    
+    // URL padronizada com /latest para leitura
+    const API_URL_READ = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+    const API_URL_WRITE = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+    const API_FOTOS_READ = `https://api.jsonbin.io/v3/b/${BIN_FOTOS_ID}/latest`;
+    const API_FOTOS_WRITE = `https://api.jsonbin.io/v3/b/${BIN_FOTOS_ID}`;
+
+    let produtos = [];
+    let fotoAtual = "";
+    let modoFoto = "url";
+
+    function verificarSenhaAdmin() {
+        const senha = document.getElementById('input-senha-admin').value;
+        if (senha === 'mdsurf2026') {
+            document.getElementById('modal-senha').classList.add('hidden');
+            document.getElementById('painel-conteudo').style.display = 'block';
+            carregarProdutos();
+            showToast('✅ Acesso liberado!');
+        } else {
+            alert('Senha incorreta!');
+        }
+    }
+
+    async function carregarProdutos() {
+        try {
+            const resp = await fetch(API_URL_READ, { headers: { 'X-Master-Key': API_KEY } });
+            const dados = await resp.json();
+            produtos = Array.isArray(dados.record) ? dados.record : [];
+            // Remove placeholders invisíveis se houver
+            produtos = produtos.filter(p => p.nome && p.nome !== '' && p.nome !== 'Produto Teste');
+            atualizarListaAdmin();
+        } catch(e) {
+            console.error(e);
+            showToast('⚠️ Erro ao carregar produtos.');
+        }
+    }
+
+    async function adicionarProduto() {
+        const nome = document.getElementById('a-nome').value.trim();
+        const preco = parseFloat(document.getElementById('a-preco').value);
+        const cat = document.getElementById('a-categoria').value;
+        const tamanhos = [...document.querySelectorAll('.tamanho-check:checked')].map(c => c.value);
+
+        if (!nome || isNaN(preco) || !cat) {
+            alert('Preencha nome, preço e categoria!');
+            return;
+        }
+
+        document.querySelector('.btn-add-produto').textContent = "Salvando...";
+        document.querySelector('.btn-add-produto').disabled = true;
+
+        const novoId = Date.now();
+        let fotoFinal = fotoAtual;
+
+        // Se for upload, salva no bin de fotos
+        if (modoFoto === 'upload' && fotoAtual.startsWith('data:image')) {
+            try {
+                const fotosResp = await fetch(API_FOTOS_READ, { headers: { 'X-Master-Key': API_KEY } });
+                const fotosData = await fotosResp.json();
+                const fotos = fotosData.record && fotosData.record.fotos ? fotosData.record.fotos : {};
+                
+                fotos[novoId] = fotoAtual;
+                
+                await fetch(API_FOTOS_WRITE, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                    body: JSON.stringify({ fotos })
+                });
+                fotoFinal = 'BIN_FOTO:' + novoId;
+            } catch(e) {
+                console.error('Erro ao salvar foto no bin separado', e);
+            }
+        }
+
+        const novoProduto = { id: novoId, nome, preco, categoria: cat, foto: fotoFinal, tamanhos };
+        const novaLista = [...produtos, novoProduto];
+
+        try {
+            await fetch(API_URL_WRITE, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                body: JSON.stringify(novaLista)
+            });
+            produtos = novaLista;
+            showToast('✅ Produto salvo com sucesso!');
+            
+            // Limpar form
+            document.getElementById('a-nome').value = '';
+            document.getElementById('a-preco').value = '';
+            document.getElementById('a-foto-url').value = '';
+            document.getElementById('a-foto-file').value = '';
+            document.getElementById('preview-url').style.display = 'none';
+            document.getElementById('preview-upload').style.display = 'none';
+            document.querySelectorAll('.tamanho-check').forEach(c => c.checked = false);
+            fotoAtual = "";
+            
+            atualizarListaAdmin();
+        } catch(e) {
+            alert('Erro ao salvar o produto no banco de dados.');
+        }
+
+        document.querySelector('.btn-add-produto').textContent = "+ SALVAR PRODUTO";
+        document.querySelector('.btn-add-produto').disabled = false;
+    }
+
+    async function removerProduto(id) {
+        if (!confirm('Remover este produto definitivamente?')) return;
+        const novaLista = produtos.filter(p => p.id != id);
+        
+        try {
+            await fetch(API_URL_WRITE, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                // Se ficar vazio, salva um array vazio (o JSONBin aceita array vazio se for a raiz do JSON)
+                body: JSON.stringify(novaLista.length === 0 ? [] : novaLista)
+            });
+            produtos = novaLista;
+            showToast('🗑 Produto removido!');
+            atualizarListaAdmin();
+        } catch(e) {
+            alert('Erro ao remover produto.');
+        }
+    }
+
+    function atualizarListaAdmin() {
+        const lista = document.getElementById('lista-admin');
+        if (produtos.length === 0) {
+            lista.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">Nenhum produto cadastrado.</p>';
+            return;
+        }
+        
+        lista.innerHTML = produtos.map(p => {
+            // Se for foto do bin, mostramos um ícone no admin para não carregar o bin inteiro atoa
+            let imgHtml = '';
+            if (p.foto && p.foto.startsWith('BIN_FOTO:')) {
+                imgHtml = `<div style="width:40px;height:40px;background:#222;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;">📁</div>`;
+            } else if (p.foto) {
+                imgHtml = `<img src="${p.foto}" onerror="this.style.display='none'">`;
+            } else {
+                imgHtml = `<div style="width:40px;height:40px;background:#222;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;">👕</div>`;
+            }
+
+            return `
+            <div class="produto-admin-item">
+                ${imgHtml}
+                <div class="produto-admin-info">
+                    <strong>${p.nome}</strong>
+                    <span>R$ ${parseFloat(p.preco).toFixed(2)} | ${p.categoria}</span>
+                </div>
+                <button class="btn-del" onclick="removerProduto(${p.id})">EXCLUIR</button>
+            </div>`;
+        }).join('');
+    }
+
+    // Controle de Imagens
+    function trocarFotoTab(modo) {
+        modoFoto = modo;
+        const tabs = document.querySelectorAll('.foto-tab');
+        tabs[0].classList.toggle('active', modo === 'url');
+        tabs[1].classList.toggle('active', modo === 'upload');
+        
+        document.getElementById('tab-url').style.display = modo === 'url' ? 'block' : 'none';
+        document.getElementById('tab-upload').style.display = modo === 'upload' ? 'block' : 'none';
+        fotoAtual = "";
+    }
+
+    function previewUrl() {
+        const url = document.getElementById('a-foto-url').value.trim();
+        const prev = document.getElementById('preview-url');
+        if (url) {
+            fotoAtual = url;
+            prev.src = url;
+            prev.style.display = 'block';
+        } else {
+            prev.style.display = 'none';
+            fotoAtual = "";
+        }
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 300; // Tamanho um pouco maior para a loja
+                let w = img.width, h = img.height;
+                if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+                else       { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                fotoAtual = canvas.toDataURL('image/jpeg', 0.6); // Qualidade 60%
+                
+                const prev = document.getElementById('preview-upload');
+                prev.src = fotoAtual;
+                prev.style.display = 'block';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+</script>
+</body>
+</html>
